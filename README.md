@@ -45,7 +45,9 @@ pip install pygame mido tkinter
 ```
 This will install the required packages for the Gamepad to MIDI application.
 
-5. **WINDOWS ONLY Download and install [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)**
+5. Create a virtual MIDI Controller
+**WINDOWS**
+Download and install [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)
 This tool will allow you to create a virtual MIDI controller.
 
 **MacOS**
