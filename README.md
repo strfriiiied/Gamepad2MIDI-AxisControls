@@ -1,3 +1,6 @@
+# Fork
+This is a fork of https://github.com/EllyKher/Gamepad2MIDI which changes all axis on the controller to act as Controls instead of notes. This is to make them act more like Faders/Sliders. 
+
 # Gamepad to MIDI
 
 This project allows you to use your gamepad (Xbox controllers by default) to generate MIDI signals, turning your gamepad into a musical controller. You can easily customize the mapping of gamepad buttons and axes to MIDI notes.
@@ -16,7 +19,7 @@ This project allows you to use your gamepad (Xbox controllers by default) to gen
 
 ## Requirements
 
-- Windows 10 (The development was done on Windows 10, but it might work on other Windows versions as well.)
+- Windows/MacOS/Linux
 - Python 3.6 or higher
 
 ## Installation
