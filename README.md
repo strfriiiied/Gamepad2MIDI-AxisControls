@@ -45,9 +45,16 @@ pip install pygame mido tkinter
 ```
 This will install the required packages for the Gamepad to MIDI application.
 
-5. **Download and install [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)**
+5. **WINDOWS ONLY Download and install [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)**
 This tool will allow you to create a virtual MIDI controller.
 
+**MacOS**
+- Launch Audio MIDI Setup using Spotlight
+- Open the Window menu and select Show MIDI Studio
+- Double click IAC Driver in the MIDI Studio layout
+- Check the Device is online checkbox
+- Create a MIDI Port by clicking the + sign below the Ports list
+- Click Apply to apply your changes
 
 ## Usage
 
