@@ -86,6 +86,17 @@ class GamepadMidiApp:
         self.mapping_window = None
         self.mapping_label = None
         self.mapping_text = None
+        # map axis index -> MIDI CC number (adjust CC numbers as you like)
+        self.axis_cc = {
+            0: 16,
+            1: 17,
+            2: 18,
+            4: 19,
+            3: 20,
+            5: 21
+        }
+        # store last sent CC values to avoid flooding
+        self.last_cc_values = {}
 
     def populate_lists(self):
         self.populate_gamepad_list()
@@ -200,7 +211,7 @@ class GamepadMidiApp:
 
         for event in pygame.event.get():
             note = self.determine_midi_note(event)
-            if note is None:
+            if note is None and event.type != pygame.JOYAXISMOTION:
                 continue
 
             if event.type == pygame.JOYBUTTONDOWN:
@@ -208,10 +219,25 @@ class GamepadMidiApp:
             elif event.type == pygame.JOYBUTTONUP:
                 self.outport.send(mido.Message('note_off', note=note, velocity=64))
             elif event.type == pygame.JOYAXISMOTION:
-                if abs(event.value) > 0.6:
-                    self.outport.send(mido.Message('note_on', note=note, velocity=64))
+                # map axis (-1..1) -> MIDI 0..127
+                cc = self.axis_cc.get(event.axis)
+                if cc is None:
+                    # fallback to original note behavior if you still want it
+                    # ensure we have a valid MIDI note number before sending
+                    if note is None:
+                        continue
+                    DEADZONE = 0.2
+                    if abs(event.value) > DEADZONE:
+                        self.outport.send(mido.Message('note_on', note=int(note), velocity=64))
+                    else:
+                        self.outport.send(mido.Message('note_off', note=int(note), velocity=64))
                 else:
-                    self.outport.send(mido.Message('note_off', note=note, velocity=64))
+                    midi_val = int(round((event.value + 1) * 63.5))
+                    midi_val = max(0, min(127, midi_val))
+                    last = self.last_cc_values.get(cc)
+                    if last != midi_val:
+                        self.outport.send(mido.Message('control_change', control=cc, value=midi_val, channel=0))
+                        self.last_cc_values[cc] = midi_val
             elif event.type == pygame.JOYHATMOTION:
                 # Since the value is a tuple, we just check if it's not the neutral position
                 if event.value != (0, 0):
