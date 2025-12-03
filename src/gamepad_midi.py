@@ -67,19 +67,19 @@ class GamepadMidiApp:
 
         # Default note mappings (C Major scale)
         self.note_values = {
-            'buttons': [60, 62, 64, 65, 67, 69, 71, 72],
+            'buttons': [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
             'axis': {
-                0: 74,  # Left analog stick horizontal
-                1: 75,  # Left analog stick vertical
-                4: 76,  # L2 trigger
-                3: 78,  # Right analog stick horizontal
-                5: 79   # R2 trigger
+                0: 72,  # Left analog stick horizontal
+                1: 73,  # Left analog stick vertical
+                4: 74,  # L2 trigger
+                3: 75,  # Right analog stick horizontal
+                5: 76   # R2 trigger
             },
             'hat': {
                 (1, 0): 77,   # D-pad right
-                (-1, 0): 79,  # D-pad left
-                (0, 1): 81,   # D-pad down
-                (0, -1): 83   # D-pad up
+                (-1, 0): 78,  # D-pad left
+                (0, 1): 79,   # D-pad down
+                (0, -1): 80   # D-pad up
             }
         }
 
@@ -88,12 +88,16 @@ class GamepadMidiApp:
         self.mapping_text = None
         # map axis index -> MIDI CC number (adjust CC numbers as you like)
         self.axis_cc = {
-            0: 16,
-            1: 17,
-            2: 18,
-            4: 19,
-            3: 20,
-            5: 21
+            0: 16, # Left X(-)
+            6: 17, # Left X+
+            1: 18, # Left Y(-)
+            7: 19, # Left Y+
+            2: 20, # Right X(-)
+            8: 21, # Right X+
+            3: 22, # Right Y(-)
+            9: 23, # Right Y+
+            4: 24, # Left Trigger
+            5: 26, # Right Trigger
         }
         # store last sent CC values to avoid flooding
         self.last_cc_values = {}
@@ -219,20 +223,36 @@ class GamepadMidiApp:
             elif event.type == pygame.JOYBUTTONUP:
                 self.outport.send(mido.Message('note_off', note=note, velocity=64))
             elif event.type == pygame.JOYAXISMOTION:
+                # Check for analogue sticks
+                is_analogue_stick = False
+                addon = 0
+                ADD_AMT = 6
+                if event.axis == 0 or event.axis == 1 or event.axis == 2 or event.axis == 3:
+                    is_analogue_stick = True
+                    if event.value > 0:
+                        addon = ADD_AMT
+                        
+                DEADZONE = 0.15
+                if abs(event.value) < DEADZONE:
+                    event.value = 0
                 # map axis (-1..1) -> MIDI 0..127
-                cc = self.axis_cc.get(event.axis)
+                cc = self.axis_cc.get(event.axis + addon)
                 if cc is None:
                     # fallback to original note behavior if you still want it
                     # ensure we have a valid MIDI note number before sending
                     if note is None:
                         continue
-                    DEADZONE = 0.2
-                    if abs(event.value) > DEADZONE:
+                    if abs(event.value) != 0:
                         self.outport.send(mido.Message('note_on', note=int(note), velocity=64))
                     else:
                         self.outport.send(mido.Message('note_off', note=int(note), velocity=64))
                 else:
-                    midi_val = int(round((event.value + 1) * 63.5))
+
+                    if is_analogue_stick:
+                        midi_val = int(abs(event.value) * 127)
+                    else:
+                        midi_val = int(round((event.value + 1) * 63.5))
+
                     midi_val = max(0, min(127, midi_val))
                     last = self.last_cc_values.get(cc)
                     if last != midi_val:
